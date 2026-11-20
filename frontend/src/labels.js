@@ -14,3 +14,8 @@ export function 标(map, key) {
   if (key == null || key === '') return '—'
   return map[key] || String(key)
 }
+
+/** 版本角色：现行 / 历史 */
+export function 版本角色(row) {
+  return row && row.is_current ? '现行' : '历史'
+}

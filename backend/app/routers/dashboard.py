@@ -25,11 +25,20 @@ def overview():
         pending = conn.execute(
             "SELECT COUNT(*) AS c FROM variances WHERE fate='pending'"
         ).fetchone()["c"]
+        # 总览修订次数：现行版本 version_no-1 之和 = 全库已发生的修订次数
+        total_revisions = conn.execute(
+            "SELECT COALESCE(SUM(version_no - 1), 0) AS c FROM estimate_versions WHERE is_current=1"
+        ).fetchone()["c"]
+        revised_estimates = conn.execute(
+            "SELECT COUNT(*) AS c FROM estimate_versions WHERE is_current=1 AND version_no > 1"
+        ).fetchone()["c"]
         current = get_setting("current_period", "")
         batches = [
             dict(r)
             for r in conn.execute(
-                "SELECT * FROM reconcile_batches ORDER BY created_at DESC LIMIT 8"
+                "SELECT batch_id,period_id,status,matched_count,variance_count,"
+                "fingerprint,created_at,revision_count "
+                "FROM reconcile_batches ORDER BY created_at DESC LIMIT 8"
             ).fetchall()
         ]
         return {
@@ -38,6 +47,8 @@ def overview():
             "sealed_periods": sealed_periods,
             "meter_count": meters,
             "pending_variances": pending,
+            "total_revisions": total_revisions,
+            "revised_estimates": revised_estimates,
             "recent_batches": batches,
         }
     finally:

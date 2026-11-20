@@ -1,5 +1,7 @@
 from __future__ import annotations
-from fastapi import APIRouter
+import json
+
+from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 
 from app.db import connect
@@ -28,18 +30,25 @@ def align(body: AlignIn):
 
 @router.get("/batches")
 def batches(period_id: str | None = None):
+    return reconcile_service.list_batches(period_id)
+
+
+@router.get("/batches/{batch_id}/snapshot")
+def batch_snapshot(batch_id: str):
     conn = connect()
     try:
-        if period_id:
-            rows = conn.execute(
-                "SELECT * FROM reconcile_batches WHERE period_id=? ORDER BY created_at DESC",
-                (period_id,),
-            ).fetchall()
-        else:
-            rows = conn.execute(
-                "SELECT * FROM reconcile_batches ORDER BY created_at DESC"
-            ).fetchall()
-        return [dict(r) for r in rows]
+        row = conn.execute(
+            "SELECT * FROM reconcile_batches WHERE batch_id=?", (batch_id,)
+        ).fetchone()
+        if not row:
+            raise HTTPException(404, "对账批不存在")
+        d = dict(row)
+        try:
+            d["estimate_snapshot"] = json.loads(d["estimate_snapshot"] or "{}")
+        except (TypeError, ValueError):
+            d["estimate_snapshot"] = {}
+        d["stale_meters"] = reconcile_service._stale_meters(conn, row)
+        return d
     finally:
         conn.close()
 
@@ -77,6 +86,9 @@ def seal(body: SealIn):
 def periods():
     conn = connect()
     try:
-        return [dict(r) for r in conn.execute("SELECT * FROM periods ORDER BY period_id DESC").fetchall()]
+        return [
+            dict(r)
+            for r in conn.execute("SELECT * FROM periods ORDER BY period_id DESC").fetchall()
+        ]
     finally:
         conn.close()

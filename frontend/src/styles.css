@@ -205,6 +205,13 @@ button:disabled { opacity: 0.5; cursor: not-allowed; }
   font-size: 0.8rem;
 }
 .tag.sealed, .tag.已封印 { background: rgba(168, 90, 42, 0.18); color: #7a3e12; }
+.tag.cur { background: rgba(47, 106, 79, 0.16); color: var(--moss); }
+.tag.old { background: rgba(31, 42, 36, 0.08); color: var(--fade); }
+tr.older td { color: var(--fade); background: rgba(31, 42, 36, 0.03); }
+.muted { color: var(--fade); font-size: 0.85rem; }
+.ops { display: flex; gap: 0.4rem; flex-wrap: wrap; }
+.msg.warn { color: var(--rust); }
+table select { min-width: 110px; }
 
 @media (max-width: 720px) {
   .mast { grid-template-columns: 1fr; }

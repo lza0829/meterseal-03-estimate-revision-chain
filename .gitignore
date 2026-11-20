@@ -16,3 +16,7 @@ data/
 # 本地环境
 .env
 .DS_Store
+
+# 测试临时库
+data/*.db-wal
+data/*.db-shm

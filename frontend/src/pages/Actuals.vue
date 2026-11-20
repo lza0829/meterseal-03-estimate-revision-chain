@@ -1,17 +1,22 @@
 <script setup>
-import { onMounted, ref } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import { api } from '../api'
 const periodId = ref('2026-10')
 const rows = ref([])
+const periods = ref([])
 const form = ref({
   meter_id: 'M-W-101', period_id: '2026-10', qty: 10,
   occurred_at: '2026-10-28T15:00:00', reader_code: '抄01', doc_no: ''
 })
 const msg = ref('')
 const err = ref('')
+const sealed = computed(() => {
+  const p = periods.value.find(x => x.period_id === form.value.period_id)
+  return !!(p && p.status === 'sealed')
+})
 async function load() {
   err.value = ''; msg.value = ''
-  rows.value = await api.actuals(periodId.value)
+  ;[rows.value, periods.value] = await Promise.all([api.actuals(periodId.value), api.periods()])
 }
 async function submit() {
   err.value = ''; msg.value = ''
@@ -40,8 +45,9 @@ onMounted(load)
         <label>发生时刻<input v-model="form.occurred_at" /></label>
         <label>抄表员<input v-model="form.reader_code" /></label>
         <label>单号<input v-model="form.doc_no" placeholder="可空自动生成" /></label>
-        <button @click="submit">装载实抄</button>
+        <button @click="submit" :disabled="sealed">装载实抄</button>
       </div>
+      <p class="msg warn" v-if="sealed">账期 {{ form.period_id }} 已封印，实抄只读</p>
       <p class="msg ok" v-if="msg">{{ msg }}</p>
       <p class="msg err" v-if="err">{{ err }}</p>
       <table>

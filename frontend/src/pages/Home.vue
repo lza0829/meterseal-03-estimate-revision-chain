@@ -19,17 +19,20 @@ onMounted(async () => {
       <div class="stat">已封印账期<b>{{ data.sealed_periods }}</b></div>
       <div class="stat">表具数<b>{{ data.meter_count }}</b></div>
       <div class="stat">未决差额<b>{{ data.pending_variances }}</b></div>
+      <div class="stat">估抄修订次数<b>{{ data.total_revisions }}</b></div>
+      <div class="stat">有修订的估抄<b>{{ data.revised_estimates }}</b></div>
     </div>
     <div class="panel" v-if="data">
       <h3>最近对账批</h3>
       <table>
-        <thead><tr><th>批号</th><th>账期</th><th>匹配</th><th>差额</th><th>状态</th></tr></thead>
+        <thead><tr><th>批号</th><th>账期</th><th>匹配</th><th>差额</th><th>估抄修订</th><th>状态</th></tr></thead>
         <tbody>
           <tr v-for="b in data.recent_batches" :key="b.batch_id">
             <td>{{ b.batch_id }}</td>
             <td>{{ b.period_id }}</td>
             <td>{{ b.matched_count }}</td>
             <td>{{ b.variance_count }}</td>
+            <td>{{ b.revision_count }}</td>
             <td><span class="tag" :class="b.status">{{ 标(批状态, b.status) }}</span></td>
           </tr>
         </tbody>
